@@ -14,6 +14,7 @@ var usersRouter = require("./routes/users");
 var dishRouter = require("./routes/dishRouter");
 var promoRouter = require("./routes/promoRouter");
 var leaderRouter = require("./routes/leaderRouter");
+const uploadRouter = require('./routes/uploadRouter');
 
 var app = express();
 
@@ -69,6 +70,7 @@ app.use(express.static(path.join(__dirname, "public")));
 app.use("/dishes", dishRouter);
 app.use("/leaders", leaderRouter);
 app.use("/promotions", promoRouter);
+app.use('/imageUpload',uploadRouter);
 
 const mongoose = require('mongoose');
 
