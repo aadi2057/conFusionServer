@@ -5,6 +5,7 @@ const authenticate = require('../authenticate');
 const cors = require('./cors');
 
 const Favourites = require('../models/favourites');
+const { count } = require("../models/favourites");
 
 const favouriteRouter = express.Router();
 
@@ -34,9 +35,62 @@ favouriteRouter.route("/")
             .catch((err) => next(err));
     })
     .post(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
-        res.statusCode = 403;
-        res.end('POST operation not supported');
+        var dishId = req.body._id;
+        console.log(dishId);
+        Favourites.find({
+        user: req.user._id
+        }).count()
+        .populate('user', 'dishes')
+        .then((count) => {
+            if (count === 0) {
+                Favourites.create({
+                user: req.user._id
+                })
+                .then((favourite) => {
+                    favourite.dishes.push(dishId);
+                    favourite.save()
+                    .then((favourite) => {
+                        Favourites.find({dishes: dishId})
+                        .then((favourite) => {
+                            res.statusCode = 200;
+                            res.setHeader('Content-Type' , 'application/json');
+                            res.json(favourite);
+                        }, (err) => next(err))
+                        .catch((err) => next(err));
+                        
+                    })
+                }, (err) => next(err))
+                .catch((err) => next(err));
+               
+            } 
+            else {
+                Favourites.findOne({
+                user: req.user._id
+                })
+                .populate('user', 'dishes')
+                .then((favorites) => {
+                    if(favorites) {
+                        if (favorites.dishes.indexOf(dishId) > -1) {
+                            console.log('Not Updated Favorites!');
+                            res.json(favorites);
+                        } else {
+                            favorites.dishes.push(dishId);
+                            favorites.save(function(err, favorites) {
+                            if (err) throw err;
+                            console.log('Updated Favorites!');
+                            res.json(favorites);
+                            });
+                        }
+                    }
+                    
+                }, (err) => next(err))
+                .catch((err) => next(err));   
+        }
+        
     })
+    .catch((err) => next(err)); 
+})
+    
     .put(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
         res.statusCode = 403;
         res.end('PUT operation not supported');
