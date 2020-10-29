@@ -8,7 +8,7 @@ const favouriteSchema = new Schema({
     },
     dishes: [{
         type: Schema.Types.ObjectId,
-        ref: 'dish'
+        ref: 'Dish'
     }]
 }, {
     timestamps: true
